@@ -1,2 +1,13 @@
+mongo-reset:
+	docker compose down --volumes
+
+mongo-setup:
+	docker compose up mongo-setup
+
+redeploy:
+	docker compose down
+	docker compose build
+	docker compose up
+
 start:
-	poetry run flask --app src/server.py run -p 3000
+	poetry run uvicorn src.server:asgi_app --host 0.0.0.0 --port 3000
