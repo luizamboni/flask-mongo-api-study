@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "flask-mongo-api-study"
+version = "0.1.0"
+description = ""
+authors = ["luiz-zamboni <luiz.zamboni@test.com>"]
+readme = "README.md"
+packages = [{include = "mypackage", from="src"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+motor = "^3.6.0"
+flask = "^3.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
