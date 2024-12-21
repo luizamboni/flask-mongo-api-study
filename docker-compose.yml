@@ -9,6 +9,7 @@ services:
     volumes:
      - ./src:/src/
      - ./Makefile:/Makefile
+    restart: always
 
   mongo1:
     image: mongo:6.0

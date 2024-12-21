@@ -10,4 +10,4 @@ redeploy:
 	docker compose up
 
 start:
-	poetry run uvicorn src.server:asgi_app --host 0.0.0.0 --port 3000
+	poetry run uvicorn src.server:asgi_app --host 0.0.0.0 --port 3000 --reload
