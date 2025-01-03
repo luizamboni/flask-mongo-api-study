@@ -1,13 +1,11 @@
-mongo-reset:
-	docker compose down --volumes
+start-dev-containers:
+	docker compose down mongo1 mongo2 mongo3 mongo-setup
+	docker compose up -d mongo1 mongo2 mongo3 mongo-setup
 
-mongo-setup:
-	docker compose up mongo-setup
+start-app:
+	docker compose down app
+	docker compose build app
+	docker compose up app
 
-redeploy:
-	docker compose down
-	docker compose build
-	docker compose up
-
-start:
-	poetry run uvicorn src.server:asgi_app --host 0.0.0.0 --port 3000 --reload
+start-fastapi:
+	poetry run uvicorn src.fastapi_server:app --host 0.0.0.0 --port 3000 --reload
