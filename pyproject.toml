@@ -16,6 +16,7 @@ pyyaml = "^6.0.2"
 uvicorn = "0.34.0"
 asgiref = "3.8.1"
 pydantic = "^2.10.4"
+fastapi = {extras = ["standard"], version = "^0.115.6"}
 
 [build-system]
 requires = ["poetry-core"]
