@@ -10,6 +10,7 @@ services:
      - ./src:/src/
      - ./Makefile:/Makefile
     restart: always
+    command: make start-fastapi 
 
   mongo1:
     image: mongo:6.0
