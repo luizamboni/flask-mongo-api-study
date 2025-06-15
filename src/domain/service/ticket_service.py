@@ -1,7 +1,5 @@
 from typing import Any
 from .ticket import Ticket, CreateTicket, TicketEvent
-from pydantic import BaseModel
-
 
 class TicketService:
 

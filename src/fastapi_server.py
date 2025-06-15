@@ -1,36 +1,16 @@
-from typing import Protocol
-from fastapi import FastAPI
-from fastapi import HTTPException, status
+from typing import Awaitable, Protocol
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
-import yaml
-from yaml import Loader
-from motor.motor_asyncio import AsyncIOMotorClient
+from src.initializers.configurator import Configurator
 
-
-from .initializers.mongo import mongo_initializer 
-from .domain.service import TicketService, CreateTicket, HealthService
-from .api.ticket import TicketEventSchema, TicketSchema, CreateTicketSchema
-from .api.health import HealthSchema
-
+from src.domain.service import TicketService, CreateTicket, HealthService
+from src.api.ticket import TicketEventSchema, TicketSchema, CreateTicketSchema
+from src.api.health import HealthSchema
 
 from starlette.types import ASGIApp, Scope, Receive, Send
-       
-config = {}
-with open("src/configs/development.yml") as f:
-    raw_config = f.read()
-    config = yaml.load(raw_config, Loader=Loader)
 
-production_db_connection = mongo_initializer.get_instance(url_connection=config["mongo"]["url"])
-sandbox_db_connection = mongo_initializer.get_instance(url_connection=config["mongo_sandbox"]["url"])
-
-health_service_production = HealthService(connection=production_db_connection)
-health_service_sandbox = HealthService(connection=sandbox_db_connection)
-
-ticket_service_production = TicketService(connection = production_db_connection)
-ticket_service_sandbox = TicketService(connection = sandbox_db_connection)
-
+config = Configurator().configure()
 class AppState:
-    mongo_client: AsyncIOMotorClient | None
     ticket_service: TicketService  | None
     health_service:  HealthService | None
 
@@ -48,7 +28,7 @@ class SandboxContextMiddleware:
         scope: Scope,
         receive: Receive,
         send: Send
-    ) -> 'Awaitable[None]':
+    ) -> Awaitable[None]:
 
         is_sandbox = False
         if scope["type"] == "http":
@@ -60,15 +40,13 @@ class SandboxContextMiddleware:
         if is_sandbox:
             print("it is sandbox!")
 
-            scope["app"].state.mongo_client = sandbox_db_connection
-            scope["app"].state.ticket_service = ticket_service_sandbox
-            scope["app"].state.health_service = health_service_sandbox
+            scope["app"].state.ticket_service = config.sandbox.ticket_service
+            scope["app"].state.health_service = config.sandbox.health_service
         else:
-            print("it is production!")
+            print("it is regular!")
 
-            scope["app"].state.mongo_client = production_db_connection
-            scope["app"].state.ticket_service = ticket_service_production
-            scope["app"].state.health_service = health_service_production
+            scope["app"].state.ticket_service = config.regular.ticket_service
+            scope["app"].state.health_service = config.regular.health_service
 
         await self.app(scope, receive, send)
 
