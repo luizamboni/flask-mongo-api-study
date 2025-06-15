@@ -1,6 +1,8 @@
 from typing import Awaitable, Protocol
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
+from src.api.app import AppInterface, AppState
+from src.api.middleware.sandbox_middleware import SandboxContextMiddleware
 from src.initializers.configurator import Configurator
 
 from src.domain.service import TicketService, CreateTicket, HealthService
@@ -10,55 +12,11 @@ from src.api.health import HealthSchema
 from starlette.types import ASGIApp, Scope, Receive, Send
 
 config = Configurator().configure()
-class AppState:
-    ticket_service: TicketService  | None
-    health_service:  HealthService | None
-
-class AppInterface(Protocol, ASGIApp):
-    state: AppState
-    def add_middleware(cb: callable):
-        ...
-
-class SandboxContextMiddleware:
-    def __init__(self, app: AppInterface):
-        self.app = app
-
-    async def __call__(
-        self,
-        scope: Scope,
-        receive: Receive,
-        send: Send
-    ) -> Awaitable[None]:
-
-        is_sandbox = False
-        if scope["type"] == "http":
-            for header_name, value in scope.get("headers", []):
-                if header_name == b'x-sandbox-request' and value == b'true':
-                    is_sandbox = True
-                    break
-    
-        if is_sandbox:
-            print("it is sandbox!")
-
-            scope["app"].state.ticket_service = config.sandbox.ticket_service
-            scope["app"].state.health_service = config.sandbox.health_service
-        else:
-            print("it is regular!")
-
-            scope["app"].state.ticket_service = config.regular.ticket_service
-            scope["app"].state.health_service = config.regular.health_service
-
-        await self.app(scope, receive, send)
-
 
 app: AppInterface = FastAPI()
 app.state = AppState()
 
-
-class ResourceNotFound(BaseModel):
-    resource: str
-
-app.add_middleware(SandboxContextMiddleware)
+app.add_middleware(SandboxContextMiddleware, config=config)
 
 
 @app.get("/health", response_model=HealthSchema)
