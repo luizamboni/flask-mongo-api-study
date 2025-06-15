@@ -14,7 +14,7 @@ async def main(env: str):
 
     tickets = await ticket_service.find_many()
     for ticket in tickets:
-        print(json.dumps(ticket.model_dump()))
+        print(ticket.model_dump_json())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ticket batch job")

@@ -23,7 +23,6 @@ async def lifespan(app: WebApplication):
 app = WebApplication(
     lifespan=lifespan,
 )
-# app.state = AppState()
 
 app.add_middleware(SandboxContextMiddleware)
 

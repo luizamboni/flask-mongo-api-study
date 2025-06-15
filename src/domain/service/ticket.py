@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import Any
 
@@ -20,6 +20,7 @@ class Ticket(BaseModel):
                 data=data,
             )
         )
+    model_config = ConfigDict(json_encoders={datetime: lambda v: v.strftime('%Y-%m-%d %H:%M')})
 
 class CreateTicket(BaseModel):
     id: str
