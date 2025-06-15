@@ -21,11 +21,11 @@ with open("src/configs/development.yml") as f:
 production_db_connection = mongo_initializer.get_instance(url_connection=config["mongo"]["url"])
 sandbox_db_connection = mongo_initializer.get_instance(url_connection=config["mongo_sandbox"]["url"])
 
-health_service_production = HealthService(connection=production_db_connection, name='[Production] HealthService')
-health_service_sandbox = HealthService(connection=sandbox_db_connection, name='[Sandbox] HealthService')
+health_service_production = HealthService(connection=production_db_connection)
+health_service_sandbox = HealthService(connection=sandbox_db_connection)
 
-ticket_service_production = TicketService(connection = production_db_connection, name='[Production] TicketService')
-ticket_service_sandbox = TicketService(connection = sandbox_db_connection, name='[Sandbox] TicketService')
+ticket_service_production = TicketService(connection = production_db_connection)
+ticket_service_sandbox = TicketService(connection = sandbox_db_connection)
 
 class AppState:
     mongo_client: AsyncIOMotorClient | None
