@@ -5,12 +5,9 @@ class TicketService:
 
     def __init__(self, connection) -> 'TicketService':
         self.connection = connection
-        self.connection_resolved = None
     
     async def _get_collection(self):
-        if not self.connection_resolved:
-            self.connection_resolved = await self.connection
-        db = self.connection_resolved["poc_database"]
+        db = self.connection["poc_database"]
         return db.get_collection("tickets")
     
     async def find_many(self) -> list[Ticket]:

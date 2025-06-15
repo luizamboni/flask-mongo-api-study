@@ -1,22 +1,31 @@
-from typing import Awaitable, Protocol
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel
-from src.api.app import AppInterface, AppState
+from contextlib import asynccontextmanager
+from fastapi import Depends, HTTPException, status
+from src.api.app import WebApplication, AppState
 from src.api.middleware.sandbox_middleware import SandboxContextMiddleware
 from src.initializers.configurator import Configurator
 
-from src.domain.service import TicketService, CreateTicket, HealthService
+from src.domain.service import CreateTicket
 from src.api.ticket import TicketEventSchema, TicketSchema, CreateTicketSchema
 from src.api.health import HealthSchema
 
-from starlette.types import ASGIApp, Scope, Receive, Send
 
-config = Configurator().configure()
 
-app: AppInterface = FastAPI()
-app.state = AppState()
 
-app.add_middleware(SandboxContextMiddleware, config=config)
+@asynccontextmanager
+async def lifespan(app: WebApplication):
+    configurator = Configurator()
+    config = await configurator.configure()
+    print(config)
+    app.state.config = config
+    
+    yield
+
+app = WebApplication(
+    lifespan=lifespan,
+)
+# app.state = AppState()
+
+app.add_middleware(SandboxContextMiddleware)
 
 
 @app.get("/health", response_model=HealthSchema)
@@ -32,6 +41,7 @@ async def health():
 
 @app.get("/ticket/", response_model=list[TicketSchema])
 async def get_tickets():
+    print("APP", app.state.ticket_service) 
     tickets = await app.state.ticket_service.find_many()
     return [ TicketSchema(**ticket.model_dump()) for ticket in tickets] 
 

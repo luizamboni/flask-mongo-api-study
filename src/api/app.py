@@ -1,14 +1,13 @@
-from typing import Protocol
+from fastapi import FastAPI
 from src.domain.service.health_service import HealthService
 from src.domain.service.ticket_service import TicketService
-from starlette.types import ASGIApp
+from src.initializers.configuration import Configuration
 
 
 class AppState:
     ticket_service: TicketService
-    health_service:  HealthService
+    health_service: HealthService
+    config: Configuration
 
-class AppInterface(Protocol, ASGIApp):
+class WebApplication(FastAPI):
     state: AppState
-    def add_middleware(cb: callable):
-        ...

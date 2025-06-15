@@ -9,16 +9,21 @@ from src.initializers.mongo import mongo_initializer
 
 
 
+import logging
+
 class Configurator:
     def __init__(self, profile_name: str = "development"):
         self.config = {}
         with open(f"src/configs/{profile_name}.yml") as f:
             raw_config = f.read()
             self.config = yaml.load(raw_config, Loader=Loader)
+        logging.debug(f"[Configurator] Loaded config for profile: {profile_name}")
 
-    def configure(self) -> Configuration:
-        production_db_connection = mongo_initializer.get_instance(url_connection=self.config["mongo"]["url"])
-        sandbox_db_connection = mongo_initializer.get_instance(url_connection=self.config["mongo_sandbox"]["url"])
+    async def configure(self) -> Configuration:
+        logging.debug("[Configurator] Starting async configuration")
+        production_db_connection = await mongo_initializer.get_instance(url_connection=self.config["mongo"]["url"])
+        sandbox_db_connection = await mongo_initializer.get_instance(url_connection=self.config["mongo_sandbox"]["url"])
+        logging.debug("[Configurator] Mongo clients initialized, building Configuration object")
 
         return Configuration(
             regular=EnvironmentConfiguration(
