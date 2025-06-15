@@ -1,14 +1,15 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 
 class MongoInitializer:
-    client: AsyncIOMotorClient | None = None
+    instances: dict[str,AsyncIOMotorClient] = {}
 
     async def get_instance(self, url_connection: str):
-        # if self.client:
-        #     return self.client
-
-        self.client = AsyncIOMotorClient(url_connection)
-        return self.client
+        if client := self.instances.get(url_connection):
+            return client
+    
+        client = AsyncIOMotorClient(url_connection)
+        self.instances[url_connection] = client
+        return client
 
 mongo_initializer = MongoInitializer()
 
