@@ -2,9 +2,13 @@ start-dev-containers:
 	docker compose down mongo1 mongo2 mongo3 mongo-setup
 	docker compose up -d mongo1 mongo2 mongo3 mongo-setup
 
-start-app:
+rebuild-and-start-app:
 	docker compose down app
 	docker compose build app
+	docker compose up app
+
+start-app:
+	docker compose down app
 	docker compose up app
 
 start-fastapi:
