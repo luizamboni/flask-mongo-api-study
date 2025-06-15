@@ -15,13 +15,13 @@ start-fastapi:
 	poetry run uvicorn src.fastapi_server:app --host 0.0.0.0 --port 3000 --reload
 
 
-curl-sandbox:
+curl-health-sandbox:
 	curl -s http://localhost:3000/health \
 		-H 'X-Sandbox-Request: true' \
 		| jq '.'
 
 
-curl-production:
+curl-health-production:
 	curl -s http://localhost:3000/health \
 		-H 'X-Sandbox-Request: false' \
 		| jq '.'

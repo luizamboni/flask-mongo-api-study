@@ -6,9 +6,11 @@ import yaml
 from yaml import Loader
 from motor.motor_asyncio import AsyncIOMotorClient
 
+
 from .initializers.mongo import mongo_initializer 
 from .domain.service import TicketService, CreateTicket, HealthService
 from .api.ticket import TicketEventSchema, TicketSchema, CreateTicketSchema
+from .api.health import HealthSchema
 
 
 from starlette.types import ASGIApp, Scope, Receive, Send
@@ -81,12 +83,12 @@ class ResourceNotFound(BaseModel):
 app.add_middleware(SandboxContextMiddleware)
 
 
-@app.get("/health")
+@app.get("/health", response_model=HealthSchema)
 async def health():
 
     try:
         health = await app.state.health_service.check()
-        return health
+        return HealthSchema(**health.model_dump())
     except Exception as e:
         return {
             "err": str(e)
@@ -94,7 +96,6 @@ async def health():
 
 @app.get("/ticket/", response_model=list[TicketSchema])
 async def get_tickets():
-    print(app.state.ticket_service.name)
     tickets = await app.state.ticket_service.find_many()
     return [ TicketSchema(**ticket.model_dump()) for ticket in tickets] 
 
@@ -106,11 +107,10 @@ async def create_ticket(body_scheme: CreateTicketSchema):
     return TicketSchema(**ticket.model_dump())
 
 @app.get("/ticket/{id}", response_model=TicketSchema)
-async def get_ticket(id: str) -> dict:
-    print(app.state.ticket_service.name)
+async def get_ticket(id: str):
     ticket = await app.state.ticket_service.find_one(id=id)
     if ticket is not None:
-        return ticket.model_dump()
+        return ticket
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Ticket with id '{id}' not found."
@@ -120,7 +120,6 @@ async def get_ticket(id: str) -> dict:
 @app.post("/ticket/{id}/event", response_model=TicketSchema)
 async def add_ticket_event(id: str, body_scheme: TicketEventSchema):
    
-
     ticket = await app.state.ticket_service.add_event(
         id=id, 
         name=body_scheme.name,
