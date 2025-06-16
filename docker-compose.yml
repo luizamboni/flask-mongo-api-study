@@ -6,12 +6,47 @@ services:
     environment:
       - FLASK_DEBUG=1
     volumes:
-     - ./src/:/app/src/
-     - ./Makefile:/app/Makefile
+      - ./src/:/app/src/
+      - ./Makefile:/app/Makefile
     restart: always
     command: make start-fastapi
 
-  mongo-sanbox:
+  worker:
+    build: .
+    environment:
+      - PUBSUB_EMULATOR_HOST=pubsub-emulator:8085
+      - PUBSUB_PROJECT_ID=test-project
+      - PUBSUB_SUBSCRIPTION_ID=ticket-events-sub
+    volumes:
+      - ./src/:/app/src/
+      - ./Makefile:/app/Makefile
+    restart: always
+    command: make run-worker
+
+
+  pubsub-emulator:
+    image: google/cloud-sdk:latest
+    container_name: pubsub-emulator
+    command: >
+      /bin/sh -c "gcloud beta emulators pubsub start --host-port=0.0.0.0:8085"
+    ports:
+      - 8085:8085
+    environment:
+      - PUBSUB_PROJECT_ID=test-project
+    restart: always
+
+  gcp-pubsub-emulator-ui:
+    image: echocode/gcp-pubsub-emulator-ui:latest
+    container_name: pubsub-explorer
+    environment:
+      - PUBSUB_EMULATOR_HOST=pubsub-emulator:8085
+      - GCP_PROJECT_IDS=test-project
+    ports:
+      - 8680:8680
+    depends_on:
+      - pubsub-emulator
+
+  mongo-sandbox:
     image: mongo:6.0
     container_name: mongo-sandbox
     ports:

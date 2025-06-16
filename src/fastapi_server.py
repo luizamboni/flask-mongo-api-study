@@ -1,11 +1,11 @@
 from contextlib import asynccontextmanager
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, status
 from src.api.app import WebApplication, AppState
 from src.api.middleware.sandbox_middleware import SandboxContextMiddleware
 from src.initializers.configurator import Configurator
 
 from src.domain.service import CreateTicket
-from src.api.ticket import TicketEventSchema, TicketSchema, CreateTicketSchema
+from src.api.ticket import TicketCancellationSchema, TicketEventSchema, TicketSchema, CreateTicketSchema
 from src.api.health import HealthSchema
 
 
@@ -71,4 +71,17 @@ async def add_ticket_event(id: str, body_scheme: TicketEventSchema):
         data=body_scheme.data
     )
     return TicketSchema(**ticket.model_dump())
+
+@app.post("/ticket/{id}/cancel", response_model=TicketSchema)
+async def cancel_ticket(id: str, body_scheme: TicketCancellationSchema):
+    ticket_with_cancelation = await app.state.ticket_service.add_event(
+        id=id,
+        name="cancelled",
+        data={
+            "reason": body_scheme.reason
+        }
+    )
+
+    app.state.pubsub_publisher_service.publish_event(body_scheme.model_dump())
+    return TicketSchema(**ticket_with_cancelation.model_dump())
 

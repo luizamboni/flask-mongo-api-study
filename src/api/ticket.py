@@ -16,3 +16,6 @@ class TicketSchema(BaseModel):
 class CreateTicketSchema(BaseModel):
     id: str
     reason: str
+
+class TicketCancellationSchema(BaseModel):
+    reason: str
