@@ -74,14 +74,10 @@ async def add_ticket_event(id: str, body_scheme: TicketEventSchema):
 
 @app.post("/ticket/{id}/cancel", response_model=TicketSchema)
 async def cancel_ticket(id: str, body_scheme: TicketCancellationSchema):
-    ticket_with_cancelation = await app.state.ticket_service.add_event(
-        id=id,
-        name="cancelled",
-        data={
-            "reason": body_scheme.reason
-        }
-    )
 
+
+    ticket_with_cancelation = await app.state.ticket_service.find_one(id=id)
+    body_scheme.id = id
     app.state.pubsub_publisher_service.publish_event(body_scheme.model_dump())
     return TicketSchema(**ticket_with_cancelation.model_dump())
 

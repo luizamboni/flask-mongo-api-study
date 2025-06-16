@@ -36,12 +36,11 @@ class PubSubPublisherService:
 
         try:
             serialized_message = json.dumps(message).encode("utf-8")
-            attributes = json.dumps(self.attributes)
-            logging.error("Publishing message in out: %s: %s, %s", self.topic_path, serialized_message, attributes)
+            logging.error("Publishing message in out: %s: %s, %s", self.topic_path, serialized_message, self.attributes)
             future = self.publisher.publish(
                 self.topic_path,
-                data=serialized_message,
-                attributes=attributes
+                serialized_message,
+                **self.attributes,
             )
             message_id = future.result(timeout=5)
             return message_id

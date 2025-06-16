@@ -18,4 +18,5 @@ class CreateTicketSchema(BaseModel):
     reason: str
 
 class TicketCancellationSchema(BaseModel):
+    id: str | None  = None # TODO: mover daqui
     reason: str
